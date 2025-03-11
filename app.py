@@ -14,7 +14,7 @@ st.set_page_config(
 )
 # Load the model and components
 def load_model():
-    with open('/Users/mohammadsalem/Desktop/S2K/StreamLit-Next-Purchase-ML/next_purchase_model.pkl', 'rb') as f:
+    with open('next_purchase_model.pkl', 'rb') as f:
         model_components = pickle.load(f)
     return model_components
 
