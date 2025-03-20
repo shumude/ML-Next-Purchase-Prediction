@@ -1,4 +1,3 @@
-# Streamlit app (save as app.py)
 import streamlit as st
 import pandas as pd
 import pickle
@@ -6,13 +5,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Page config
 st.set_page_config(
     page_title="Next Purchase Predictor",
     page_icon="🛒",
     layout="wide"
 )
-# Load the model and components
 def load_model():
     with open('next_purchase_model.pkl', 'rb') as f:
         model_components = pickle.load(f)
@@ -32,20 +29,17 @@ model_loaded = True
 
 print(feature_map)
 
-# App title and description
 st.title("Next Purchase Predictor")
 st.markdown("""
-This app predicts what a customer is likely to purchase next based on their purchase history.
+This app predicts what a customer is likely to purchase next based on their purchase history. V2
 """)
 
 
 st.header("Predict Next Purchase")
 
-# Input form
 with st.form("prediction_form"):
     first_category = st.selectbox("Previous Purchase Category", options=categories)
 
-    # Only show fields that were used in training
     feature_inputs = {}
 
     if feature_map.get('has_qty', False):
@@ -57,13 +51,10 @@ with st.form("prediction_form"):
 
 if submit_button:
     try:
-        # Encode the category
         category_encoded = label_encoder_category.transform([first_category])[0]
 
-        # Prepare input features
         features = [category_encoded]
 
-        # Add and scale numeric features
         numeric_feature_values = []
         for feature in feature_columns:
             if feature == 'Category_Encoded':
@@ -72,29 +63,22 @@ if submit_button:
             if feature in feature_inputs:
                 numeric_feature_values.append(feature_inputs[feature])
 
-        # Scale numeric features if we have any
         if numeric_feature_values and hasattr(scaler, 'transform'):
             scaled_values = scaler.transform([numeric_feature_values])[0]
             features.extend(scaled_values)
 
-        # Make prediction
         features_array = np.array(features).reshape(1, -1)
         next_category_encoded = model.predict(features_array)[0]
         next_category = label_encoder_next.inverse_transform([next_category_encoded])[0]
 
-        # Get prediction probabilities
         probabilities = model.predict_proba(features_array)[0]
 
-        # Map probabilities to categories
         prob_dict = {next_categories[i]: prob for i, prob in enumerate(probabilities)}
 
-        # Sort by probability (descending)
         sorted_probs = sorted(prob_dict.items(), key=lambda x: x[1], reverse=True)
 
-        # Display results
         st.success(f"Predicted next purchase: **{next_category}**")
 
-        # Show top 5 recommendations
         st.subheader("Top Recommendations")
         col1, col2 = st.columns([3, 2])
 
@@ -104,12 +88,10 @@ if submit_button:
                 st.markdown(f"{i}. {cat} **(Confidence: <span style='color:{confidence_color}'>{prob:.2f}</span>)**", unsafe_allow_html=True)
 
         with col2:
-            # Visualize probabilities
             fig, ax = plt.subplots(figsize=(10, 6))
             top_5_cats = [cat for cat, _ in sorted_probs[:5]]
             top_5_probs = [prob for _, prob in sorted_probs[:5]]
 
-            # Create bars with gradient colors based on probability
             cmap = plt.cm.get_cmap('Blues')
             colors = [cmap(p) for p in top_5_probs]
 
